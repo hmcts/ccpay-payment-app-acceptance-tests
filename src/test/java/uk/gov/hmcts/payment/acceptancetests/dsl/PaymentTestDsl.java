@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.acceptancetests.tokens.ServiceTokenFactory;
+import uk.gov.hmcts.payment.acceptancetests.tokens.UserTokenFactory;
 import uk.gov.hmcts.payment.api.contract.CreatePaymentRequestDto.CreatePaymentRequestDtoBuilder;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
 
@@ -18,23 +19,24 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 @Scope("prototype")
 public class PaymentTestDsl {
     private final ServiceTokenFactory serviceTokenFactory;
+    private final UserTokenFactory userTokenFactory;
     private final RequestSpecification requestSpecification;
     private Response response;
 
     @Autowired
-    public PaymentTestDsl(@Value("${base-urls.payment}") String baseUri, ServiceTokenFactory serviceTokenFactory) {
-        this.serviceTokenFactory = serviceTokenFactory;
+    public PaymentTestDsl(@Value("${base-urls.payment}") String baseUri, ServiceTokenFactory serviceTokenFactory, UserTokenFactory userTokenFactory) {
         this.requestSpecification = RestAssured.given().baseUri(baseUri).contentType(ContentType.JSON);
+        this.serviceTokenFactory = serviceTokenFactory;
+        this.userTokenFactory = userTokenFactory;
     }
 
     public PaymentGivenDsl given() {
         return new PaymentGivenDsl();
     }
 
-
     public class PaymentGivenDsl {
         public PaymentGivenDsl userId(String id) {
-            requestSpecification.header("Authorization", "Bearer eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiIxIiwic3ViIjoiMSIsImlhdCI6MTQ4OTA1MTg1NSwicm9sZXMiOiJjaXRpemVuIiwidHlwZSI6IkFDQ0VTUyIsImlkIjoiMSIsImZvcmVuYW1lIjoiTmV3Iiwic3VybmFtZSI6IlVzZXIiLCJlbWFpbCI6Im5ldy51c2VyQHRlc3QubmV0IiwibG9hIjoxfQ.ylr8Pwl7yxQs_J5ZINcVzZ9DfTZ9QL598NlTGYyzUHA");
+            requestSpecification.header("Authorization", userTokenFactory.validTokenForUser(id));
             return this;
         }
 

@@ -8,16 +8,16 @@ import org.springframework.boot.test.context.TestComponent;
 import static io.restassured.RestAssured.post;
 
 @TestComponent
-public class ServiceTokenFactory {
+public class UserTokenFactory {
 
     private final String baseUrl;
 
     @Autowired
-    public ServiceTokenFactory(@Value("${base-urls.service-auth-provider}") String baseUrl) {
+    public UserTokenFactory(@Value("${base-urls.idam}") String baseUrl) {
         this.baseUrl = baseUrl;
     }
 
-    public String validTokenForService(String microservice) {
-        return "Bearer " + post(baseUrl + "/testing-support/lease?microservice={microservice}", microservice).body().asString();
+    public String validTokenForUser(String userId) {
+        return "Bearer " + post(baseUrl + "/testing-support/lease?id={id}&role=citizen", userId).body().asString();
     }
 }
