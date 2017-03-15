@@ -47,7 +47,7 @@ public class SecurityIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void callToOtherUsersResourceShouldResultIn403() throws IOException {
-        scenario.given().serviceId("unknown-service").userId("1")
+        scenario.given().serviceId("divorce").userId("1")
                 .when().getPayment("2", "999999")
                 .then().forbidden();
     }

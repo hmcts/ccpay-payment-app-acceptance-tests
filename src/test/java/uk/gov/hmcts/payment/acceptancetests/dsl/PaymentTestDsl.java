@@ -5,6 +5,7 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import java.util.function.Consumer;
+import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
@@ -79,5 +80,12 @@ public class PaymentTestDsl {
             paymentAssertions.accept(paymentDto);
             return this;
         }
+
+        public PaymentThenDsl validationError(String message) {
+            String validationError = response.then().statusCode(422).extract().body().asString();
+            Assertions.assertThat(validationError).isEqualTo(message);
+            return this;
+        }
+
     }
 }

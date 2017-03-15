@@ -37,4 +37,38 @@ public class CreatePaymentIntegrationTest extends IntegrationTestBase {
         );
     }
 
+    @Test
+    public void paymentWithoutAmountShouldNotBeCreated() throws IOException {
+        scenario.given().userId("1").serviceId("divorce")
+                .when().createPayment("1", validRequest.amount(null))
+                .then().validationError("amount: may not be null");
+    }
+
+    @Test
+    public void paymentWithoutDescriptionShouldNotBeCreated() throws IOException {
+        scenario.given().userId("1").serviceId("divorce")
+                .when().createPayment("1", validRequest.description(null))
+                .then().validationError("description: may not be empty");
+    }
+
+    @Test
+    public void paymentWithoutEmailShouldNotBeCreated() throws IOException {
+        scenario.given().userId("1").serviceId("divorce")
+                .when().createPayment("1", validRequest.email(null))
+                .then().validationError("email: may not be empty");
+    }
+
+    @Test
+    public void paymentWithoutReferenceShouldNotBeCreated() throws IOException {
+        scenario.given().userId("1").serviceId("divorce")
+                .when().createPayment("1", validRequest.reference(null))
+                .then().validationError("reference: may not be empty");
+    }
+
+    @Test
+    public void paymentWithoutReturnUrlShouldNotBeCreated() throws IOException {
+        scenario.given().userId("1").serviceId("divorce")
+                .when().createPayment("1", validRequest.returnUrl(null))
+                .then().validationError("returnUrl: may not be empty");
+    }
 }
