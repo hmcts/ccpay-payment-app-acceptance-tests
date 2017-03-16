@@ -33,8 +33,7 @@ public class CreatePaymentIntegrationTest extends IntegrationTestBase {
                     assertThat(paymentDto.getReference()).isEqualTo("Reference");
                     assertThat(paymentDto.getLinks().getCancel()).isNotNull();
                     assertThat(paymentDto.getLinks().getNextUrl()).isNotNull();
-                })
-        );
+                }));
     }
 
     @Test
