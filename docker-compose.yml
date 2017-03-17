@@ -30,6 +30,8 @@ services:
   gov-pay-stub:
     build:
       context: src/test/resources/gov-pay-stub/
+    volumes:
+      - ./src/test/resources/gov-pay-stub/mappings:/mappings
     ports:
       - 8083:8080
 

@@ -1,8 +1,6 @@
 FROM openjdk:8-jre
 
-RUN curl -L http://repo1.maven.org/maven2/com/github/tomakehurst/wiremock/1.58/wiremock-1.58-standalone.jar -o /app.jar
-
-COPY mappings /mappings
+RUN curl -L http://central.maven.org/maven2/com/github/tomakehurst/wiremock-standalone/2.5.1/wiremock-standalone-2.5.1.jar -o /app.jar
 
 COPY entrypoint.sh /
 
