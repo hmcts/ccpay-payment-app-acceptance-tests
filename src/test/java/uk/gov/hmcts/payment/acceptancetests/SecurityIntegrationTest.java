@@ -33,7 +33,7 @@ public class SecurityIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void validUserAndServiceTokenShouldNotResultIn403() throws IOException {
-        scenario.given().serviceId("divorce").userId("1")
+        scenario.given().serviceId("probate").userId("1")
                 .when().getPayment("1", "999999")
                 .then().notFound();
     }
