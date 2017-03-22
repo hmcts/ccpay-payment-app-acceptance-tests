@@ -17,7 +17,9 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.acceptancetests.tokens.ServiceTokenFactory;
 import uk.gov.hmcts.payment.acceptancetests.tokens.UserTokenFactory;
 import uk.gov.hmcts.payment.api.contract.CreatePaymentRequestDto.CreatePaymentRequestDtoBuilder;
+import uk.gov.hmcts.payment.api.contract.RefundPaymentRequestDto.RefundPaymentRequestDtoBuilder;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.contract.RefundPaymentRequestDto;
 
 @Component
 @Scope("prototype")
@@ -84,6 +86,12 @@ public class PaymentTestDsl {
             return this;
         }
 
+        public PaymentWhenDsl refundPayment(String userId, RefundPaymentRequestDtoBuilder requestDto,String paymentId) {
+            System.out.println("Refund payment " + paymentId);
+            response = newRequest().body(requestDto.build()).post("/users/{userId}/payments/{paymentId}/refunds", userId, paymentId);
+            return this;
+        }
+
         public PaymentThenDsl then() {
             return new PaymentThenDsl();
         }
@@ -135,6 +143,16 @@ public class PaymentTestDsl {
         public PaymentThenDsl validationErrorfor404(String message) {
             String validationError = response.then().statusCode(404).extract().body().asString();
             Assertions.assertThat(validationError).isEqualTo(message);
+            return this;
+        }
+
+        public PaymentThenDsl refundPayment() {
+            response.then().statusCode(201);
+            return this;
+        }
+
+        public PaymentThenDsl refundAvailableAmountInvalid412() {
+            response.then().statusCode(412);
             return this;
         }
 
