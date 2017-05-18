@@ -70,24 +70,20 @@ public class PaymentTestDsl {
         public PaymentWhenDsl createPayment(String userId, CreatePaymentRequestDtoBuilder requestDto, AtomicReference<PaymentDto> paymentHolder) {
             createPayment(userId, requestDto);
             paymentHolder.set(response.then().statusCode(201).extract().as(PaymentDto.class));
-            System.out.println("Created payment " + paymentHolder.get().getId());
             return this;
         }
 
         public PaymentWhenDsl createPayment(String userId, CreatePaymentRequestDtoBuilder requestDto) {
-            System.out.println("Creating payment " + requestDto);
             response = newRequest().body(requestDto.build()).post("/users/{userId}/payments/", userId);
             return this;
         }
 
         public PaymentWhenDsl cancelPayment(String userId, String paymentId) {
-            System.out.println("Canceling payment " + paymentId);
             response = newRequest().post("/users/{userId}/payments/{paymentId}/cancel", userId, paymentId);
             return this;
         }
 
         public PaymentWhenDsl refundPayment(String userId, RefundPaymentRequestDtoBuilder requestDto,String paymentId) {
-            System.out.println("Refund payment " + paymentId);
             response = newRequest().body(requestDto.build()).post("/users/{userId}/payments/{paymentId}/refunds", userId, paymentId);
             return this;
         }
@@ -137,11 +133,6 @@ public class PaymentTestDsl {
 
         public PaymentThenDsl validationErrorfor500(String message) {
             String validationError = response.then().statusCode(500).extract().body().asString();
-            Assertions.assertThat(validationError).isEqualTo(message);
-            return this;
-        }
-        public PaymentThenDsl validationErrorfor404(String message) {
-            String validationError = response.then().statusCode(404).extract().body().asString();
             Assertions.assertThat(validationError).isEqualTo(message);
             return this;
         }

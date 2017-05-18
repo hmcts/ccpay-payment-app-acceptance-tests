@@ -1,5 +1,5 @@
 {
-    "request": {
+  "request": {
     "method": "POST",
     "url": "/govPayId1/refunds",
     "bodyPatterns": [
@@ -12,6 +12,10 @@
     "status": 412,
     "headers": {
       "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "code": "P0604",
+      "description": "Refund amount available mismatch"
     }
   }
 }

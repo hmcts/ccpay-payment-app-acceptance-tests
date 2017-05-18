@@ -13,9 +13,6 @@ import uk.gov.hmcts.payment.api.contract.PaymentDto;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.payment.api.contract.CreatePaymentRequestDto.createPaymentRequestDtoWith;
 
-/**
- * Created by kknuthalapati on 15/03/2017.
- */
 public class GetPaymentIntegrationTest extends IntegrationTestBase {
 
     private CreatePaymentRequestDto.CreatePaymentRequestDtoBuilder validRequest = createPaymentRequestDtoWith()
@@ -32,7 +29,7 @@ public class GetPaymentIntegrationTest extends IntegrationTestBase {
     public void validGetPaymentRequestShouldResultIn200() throws IOException {
         AtomicReference<PaymentDto> paymentHolder = new AtomicReference<>();
 
-        scenario.given().userId("1").serviceId("divorce")
+        scenario.given().userId("1").serviceId("reference")
                 .when()
                 .createPayment("1", validRequest, paymentHolder)
                 .getPayment("1", paymentHolder.get().getId())
@@ -48,34 +45,33 @@ public class GetPaymentIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    public void createAndCancelApproachC() throws IOException {
+    public void createAndCancelApproach() throws IOException {
         AtomicReference<PaymentDto> paymentHolder = new AtomicReference<>();
 
-        scenario.given().userId("1").serviceId("divorce")
+        scenario.given().userId("1").serviceId("reference")
                 .when()
                 .createPayment("1", validRequest, paymentHolder)
                 .cancelPayment("1", paymentHolder.get().getId())
                 .then().cancelled();
     }
 
-
     @Test
-    public void getPaymentWithOutServiceIdRequestShouldResultIn500() throws IOException {
-        scenario.given().userId("1").serviceId("divorce")
+    public void getPaymentWithoutPaymentIdRequestShouldResultIn500() throws IOException { // TODO: fix, should be 404
+        scenario.given().userId("1").serviceId("reference")
                 .when().getPayment("1", "")
                 .then().validationErrorfor500("");
     }
 
     @Test
-    public void getPaymentWithOutUserIdRequestShouldResultIn404() throws IOException {
-        scenario.given().userId("1").serviceId("divorce")
+    public void getPaymentWithoutUserIdShouldResultIn404() throws IOException {
+        scenario.given().userId("1").serviceId("reference")
                 .when().getPayment("", "9")
                 .then().notFound();
     }
 
     @Test
-    public void getPaymentWithOutUserIdAndPaymentIdRequestShouldResultIn400() throws IOException {
-        scenario.given().userId("1").serviceId("divorce")
+    public void getPaymentWithoutUserIdAndPaymentIdRequestShouldResultIn400() throws IOException {
+        scenario.given().userId("1").serviceId("reference")
                 .when().getPayment("", "")
                 .then().notFound();
     }

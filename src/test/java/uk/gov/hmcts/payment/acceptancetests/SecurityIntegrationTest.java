@@ -19,7 +19,7 @@ public class SecurityIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void noUserTokenShouldResultIn403() throws IOException {
-        scenario.given().serviceId("divorce")
+        scenario.given().serviceId("reference")
                 .when().getPayment("1", "999999")
                 .then().forbidden();
     }
@@ -33,7 +33,7 @@ public class SecurityIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void validUserAndServiceTokenShouldNotResultIn403() throws IOException {
-        scenario.given().serviceId("probate").userId("1")
+        scenario.given().serviceId("reference").userId("1")
                 .when().getPayment("1", "999999")
                 .then().notFound();
     }
@@ -47,7 +47,7 @@ public class SecurityIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void callToOtherUsersResourceShouldResultIn403() throws IOException {
-        scenario.given().serviceId("divorce").userId("1")
+        scenario.given().serviceId("reference").userId("1")
                 .when().getPayment("2", "999999")
                 .then().forbidden();
     }
