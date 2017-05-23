@@ -6,8 +6,8 @@ import uk.gov.hmcts.RPMTagger
 
 def packager = new Packager(this, 'cc')
 def ansible = new Ansible(this, 'ccpay')
-
 def rtMaven = Artifactory.newMavenBuild()
+RPMTagger rpmTagger = new RPMTagger(this, 'payment-api', packager.rpmName('payment-api', params.rpmVersion), 'cc-local')
 
 properties([
         [$class: 'GithubProjectProperty', displayName: 'Payment API acceptance tests', projectUrlStr: 'https://git.reform.hmcts.net/common-components/payment-app-acceptance-tests'],
@@ -15,6 +15,9 @@ properties([
 ])
 
 lock('Payment API acceptance tests') {
+    def deploymentRequired = !params.rpmVersion.isEmpty()
+    def version = "{payment_api_version: ${params.rpmVersion}}"
+
     stageWithNotification('Delete old stuff') {
         deleteDir()
     }
@@ -25,18 +28,16 @@ lock('Payment API acceptance tests') {
         rtMaven.run pom: 'pom.xml', goals: 'test-compile'
     }
 
-    RPMTagger rpmTagger = new RPMTagger(this, 'payment-api', packager.rpmName('payment-api', params.rpmVersion), 'cc-local')
-    def version = "{payment_api_version: ${params.rpmVersion}}"
-
-    stageWithNotification('Deploy to Dev') {
-        ansible.runDeployPlaybook(version, 'dev')
-        rpmTagger.tagDeploymentSuccessfulOn('dev')
+    if (deploymentRequired) {
+        stageWithNotification('Deploy to Dev') {
+            ansible.runDeployPlaybook(version, 'dev')
+            rpmTagger.tagDeploymentSuccessfulOn('dev')
+        }
     }
 
     stageWithNotification('Run acceptance tests') {
         checkout scm
         rtMaven.run pom: 'pom.xml', goals: 'package surefire-report:report'
-        rpmTagger.tagTestingPassedOn('dev')
 
         publishHTML([
                 allowMissing         : false,
@@ -48,14 +49,20 @@ lock('Payment API acceptance tests') {
         ])
     }
 
-    stageWithNotification('Deploy to Test') {
-        ansible.runDeployPlaybook(version, 'test')
-        rpmTagger.tagDeploymentSuccessfulOn('test')
-    }
+    if (deploymentRequired) {
+        stageWithNotification('Tag testing passed') {
+            rpmTagger.tagTestingPassedOn('dev')
+        }
 
-    stageWithNotification('Run smoke tests') {
-        println 'Running smoke tests'
-        rpmTagger.tagTestingPassedOn('test')
+        stageWithNotification('Deploy to Test') {
+            ansible.runDeployPlaybook(version, 'test')
+            rpmTagger.tagDeploymentSuccessfulOn('test')
+        }
+
+        stageWithNotification('Run smoke tests') {
+            println 'Running smoke tests'
+            rpmTagger.tagTestingPassedOn('test')
+        }
     }
 }
 
