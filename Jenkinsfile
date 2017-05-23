@@ -14,7 +14,7 @@ properties([
         parameters([string(defaultValue: '', description: 'RPM Version', name: 'rpmVersion')])
 ])
 
-lock('Single Instance Only') {
+lock('Payment API acceptance tests') {
     stageWithNotification('Delete old stuff') {
         deleteDir()
     }
@@ -35,8 +35,17 @@ lock('Single Instance Only') {
 
     stageWithNotification('Run acceptance tests') {
         checkout scm
-        rtMaven.run pom: 'pom.xml', goals: 'package'
+        rtMaven.run pom: 'pom.xml', goals: 'package surefire-report:report'
         rpmTagger.tagTestingPassedOn('dev')
+
+        publishHTML([
+                allowMissing         : false,
+                alwaysLinkToLastBuild: true,
+                keepAll              : false,
+                reportDir            : 'target/site',
+                reportFiles          : 'surefire-report.html',
+                reportName           : 'Acceptance Test Report'
+        ])
     }
 
     stageWithNotification('Deploy to Test') {
