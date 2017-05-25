@@ -14,6 +14,16 @@ properties([
         parameters([string(defaultValue: '', description: 'RPM Version', name: 'rpmVersion')])
 ])
 
+def secrets = [
+        [$class      : 'VaultSecret',
+         path        : 'secret/test/cc/payment/acceptance-tests/authorization-header',
+         secretValues: [[$class: 'VaultSecretValue', envVar: 'SMOKE_TEST_HEADERS_AUTHORIZATION', vaultKey: 'value']]],
+        [$class      : 'VaultSecret',
+         path        : 'secret/test/cc/payment/acceptance-tests/service-authorization-header',
+         secretValues: [[$class: 'VaultSecretValue', envVar: 'SMOKE_TEST_HEADERS_SERVICE_AUTHORIZATION', vaultKey: 'value']]]
+]
+
+
 lock('Payment API acceptance tests') {
     def deploymentRequired = !params.rpmVersion.isEmpty()
     def version = "{payment_api_version: ${params.rpmVersion}}"
@@ -37,7 +47,7 @@ lock('Payment API acceptance tests') {
 
     stageWithNotification('Run acceptance tests') {
         checkout scm
-        rtMaven.run pom: 'pom.xml', goals: 'package surefire-report:report'
+        rtMaven.run pom: 'pom.xml', goals: 'package surefire-report:report -Dspring.profiles.active=devA -Dtest=**/acceptancetests/*Test'
 
         publishHTML([
                 allowMissing         : false,
@@ -60,8 +70,11 @@ lock('Payment API acceptance tests') {
         }
 
         stageWithNotification('Run smoke tests') {
-            println 'Running smoke tests'
-            rpmTagger.tagTestingPassedOn('test')
+            wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
+                checkout scm
+                rtMaven.run pom: 'pom.xml', goals: 'package -Dspring.profiles.active=devB -Dtest=**/smoketests/*Test'
+                rpmTagger.tagTestingPassedOn('test')
+            }
         }
     }
 }
