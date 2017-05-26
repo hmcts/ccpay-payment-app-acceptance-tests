@@ -28,7 +28,7 @@ public class CreatePaymentSmokeTest extends SmokeTestBase {
     private String authorization;
 
     @Autowired
-    @Value("${smoke-test-headers.serviceAuthorization}")
+    @Value("${smoke-test-headers.service-authorization}")
     private String serviceAuthorization;
 
     @Test
