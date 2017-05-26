@@ -17,7 +17,6 @@ public class RefundPaymentIntegrationTest extends IntegrationTestBase {
     private CreatePaymentRequestDto.CreatePaymentRequestDtoBuilder validRequest = createPaymentRequestDtoWith()
             .amount(100)
             .description("Description")
-            .email("Email@email.com")
             .reference("Reference")
             .returnUrl("https://return-url");
 

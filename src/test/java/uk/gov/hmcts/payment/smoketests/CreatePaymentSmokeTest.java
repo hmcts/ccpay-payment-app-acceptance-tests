@@ -16,7 +16,6 @@ public class CreatePaymentSmokeTest extends SmokeTestBase {
     private final static CreatePaymentRequestDto VALID_REQUEST = createPaymentRequestDtoWith()
             .amount(100)
             .description("Description")
-            .email("Email@email.com")
             .reference("Reference")
             .returnUrl("https://return-url").build();
 
