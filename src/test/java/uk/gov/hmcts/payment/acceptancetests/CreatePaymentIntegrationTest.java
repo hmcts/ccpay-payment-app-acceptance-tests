@@ -18,7 +18,6 @@ public class CreatePaymentIntegrationTest extends IntegrationTestBase {
     private CreatePaymentRequestDtoBuilder validRequest = createPaymentRequestDtoWith()
             .amount(100)
             .description("Description")
-            .email("Email@email.com")
             .reference("Reference")
             .returnUrl("https://return-url");
 
@@ -49,13 +48,6 @@ public class CreatePaymentIntegrationTest extends IntegrationTestBase {
         scenario.given().userId("1").serviceId("reference")
                 .when().createPayment("1", validRequest.description(null))
                 .then().validationError("description: may not be empty");
-    }
-
-    @Test
-    public void paymentWithoutEmailShouldNotBeCreated() throws IOException {
-        scenario.given().userId("1").serviceId("reference")
-                .when().createPayment("1", validRequest.email(null))
-                .then().validationError("email: may not be empty");
     }
 
     @Test
