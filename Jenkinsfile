@@ -47,7 +47,7 @@ lock('Payment API acceptance tests') {
 
     stageWithNotification('Run acceptance tests') {
         checkout scm
-        rtMaven.run pom: 'pom.xml', goals: 'package surefire-report:report -Dspring.profiles.active=devA -Dtest=**/acceptancetests/*Test'
+        rtMaven.run pom: 'pom.xml', goals: 'clean package surefire-report:report -Dspring.profiles.active=devA -Dtest=**/acceptancetests/*Test'
 
         publishHTML([
                 allowMissing         : false,
@@ -72,7 +72,17 @@ lock('Payment API acceptance tests') {
         stageWithNotification('Run smoke tests') {
             wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
                 checkout scm
-                rtMaven.run pom: 'pom.xml', goals: 'package -Dspring.profiles.active=devB -Dtest=**/smoketests/*Test'
+                rtMaven.run pom: 'pom.xml', goals: 'clean package surefire-report:report -Dspring.profiles.active=devB -Dtest=**/smoketests/*Test'
+
+                publishHTML([
+                        allowMissing         : false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll              : false,
+                        reportDir            : 'target/site',
+                        reportFiles          : 'surefire-report.html',
+                        reportName           : 'Smoke Test Report'
+                ])
+
                 rpmTagger.tagTestingPassedOn('test')
             }
         }
