@@ -17,7 +17,7 @@
         <dependency>
             <groupId>uk.gov.hmcts.payment</groupId>
             <artifactId>payment-api-contract</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>1.0.0.221</version>
         </dependency>
 
         <dependency>
