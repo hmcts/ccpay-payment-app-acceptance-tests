@@ -4,11 +4,6 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,9 +12,13 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.acceptancetests.tokens.ServiceTokenFactory;
 import uk.gov.hmcts.payment.acceptancetests.tokens.UserTokenFactory;
 import uk.gov.hmcts.payment.api.contract.CreatePaymentRequestDto.CreatePaymentRequestDtoBuilder;
-import uk.gov.hmcts.payment.api.contract.RefundPaymentRequestDto.RefundPaymentRequestDtoBuilder;
 import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.RefundPaymentRequestDto;
+import uk.gov.hmcts.payment.api.contract.RefundPaymentRequestDto.RefundPaymentRequestDtoBuilder;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 @Component
 @Scope("prototype")
@@ -67,6 +66,11 @@ public class PaymentTestDsl {
             return this;
         }
 
+        public PaymentWhenDsl getBuildInfo() {
+            response = newRequest().get("/info" );
+            return this;
+        }
+
         public PaymentWhenDsl createPayment(String userId, CreatePaymentRequestDtoBuilder requestDto, AtomicReference<PaymentDto> paymentHolder) {
             createPayment(userId, requestDto);
             paymentHolder.set(response.then().statusCode(201).extract().as(PaymentDto.class));
@@ -107,6 +111,12 @@ public class PaymentTestDsl {
         public PaymentThenDsl created(Consumer<PaymentDto> paymentAssertions) {
             PaymentDto paymentDto = response.then().statusCode(201).extract().as(PaymentDto.class);
             paymentAssertions.accept(paymentDto);
+            return this;
+        }
+
+        public <T> PaymentThenDsl got(Class<T> type, Consumer<T> assertions) {
+            T dto = response.then().statusCode(200).extract().as(type);
+            assertions.accept(dto);
             return this;
         }
 
