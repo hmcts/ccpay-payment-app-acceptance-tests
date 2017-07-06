@@ -31,7 +31,7 @@ lock('Payment API acceptance tests') {
             def version = "{payment_api_version: ${params.rpmVersion}}"
 
             if (deploymentRequired) {
-                stageWithNotification('Deploy to Dev') {
+                stage('Deploy to Dev') {
                     ansible.runDeployPlaybook(version, 'dev')
                     rpmTagger.tagDeploymentSuccessfulOn('dev')
                 }
