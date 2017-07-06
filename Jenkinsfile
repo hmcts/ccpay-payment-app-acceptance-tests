@@ -25,54 +25,23 @@ def secrets = [
 
 
 lock('Payment API acceptance tests') {
-    def deploymentRequired = !params.rpmVersion.isEmpty()
-    def version = "{payment_api_version: ${params.rpmVersion}}"
+    node {
+        try {
+            def deploymentRequired = !params.rpmVersion.isEmpty()
+            def version = "{payment_api_version: ${params.rpmVersion}}"
 
-    stageWithNotification('Delete old stuff') {
-        deleteDir()
-    }
+            if (deploymentRequired) {
+                stageWithNotification('Deploy to Dev') {
+                    ansible.runDeployPlaybook(version, 'dev')
+                    rpmTagger.tagDeploymentSuccessfulOn('dev')
+                }
+            }
 
-    stageWithNotification('Compile tests') {
-        checkout scm
-        rtMaven.tool = 'apache-maven-3.3.9'
-        rtMaven.run pom: 'pom.xml', goals: 'test-compile'
-    }
-
-    if (deploymentRequired) {
-        stageWithNotification('Deploy to Dev') {
-            ansible.runDeployPlaybook(version, 'dev')
-            rpmTagger.tagDeploymentSuccessfulOn('dev')
-        }
-    }
-
-    stageWithNotification('Run acceptance tests') {
-        checkout scm
-        rtMaven.run pom: 'pom.xml', goals: 'clean package surefire-report:report -Dspring.profiles.active=devA -Dtest=**/acceptancetests/*Test'
-
-        publishHTML([
-                allowMissing         : false,
-                alwaysLinkToLastBuild: true,
-                keepAll              : false,
-                reportDir            : 'target/site',
-                reportFiles          : 'surefire-report.html',
-                reportName           : 'Acceptance Test Report'
-        ])
-    }
-
-    if (deploymentRequired) {
-        stageWithNotification('Tag testing passed') {
-            rpmTagger.tagTestingPassedOn('dev')
-        }
-
-        stageWithNotification('Deploy to Test') {
-            ansible.runDeployPlaybook(version, 'test')
-            rpmTagger.tagDeploymentSuccessfulOn('test')
-        }
-
-        stageWithNotification('Run smoke tests') {
-            wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
+            stage('Run acceptance tests') {
+                deleteDir()
                 checkout scm
-                rtMaven.run pom: 'pom.xml', goals: 'clean package surefire-report:report -Dspring.profiles.active=devB -Dtest=**/smoketests/*Test'
+                rtMaven.tool = 'apache-maven-3.3.9'
+                rtMaven.run pom: 'pom.xml', goals: 'clean package surefire-report:report -Dspring.profiles.active=devA -Dtest=**/acceptancetests/*Test'
 
                 publishHTML([
                         allowMissing         : false,
@@ -80,24 +49,42 @@ lock('Payment API acceptance tests') {
                         keepAll              : false,
                         reportDir            : 'target/site',
                         reportFiles          : 'surefire-report.html',
-                        reportName           : 'Smoke Test Report'
+                        reportName           : 'Acceptance Test Report'
                 ])
-
-                rpmTagger.tagTestingPassedOn('test')
             }
-        }
-    }
-}
 
-private stageWithNotification(String name, Closure body) {
-    stage(name) {
-        node {
-            try {
-                body()
-            } catch (err) {
-                notifyBuildFailure channel: '#cc_tech'
-                throw err
+            if (deploymentRequired) {
+                stage('Tag testing passed') {
+                    rpmTagger.tagTestingPassedOn('dev')
+                }
+
+                stage('Deploy to Test') {
+                    ansible.runDeployPlaybook(version, 'test')
+                    rpmTagger.tagDeploymentSuccessfulOn('test')
+                }
+
+                stage('Run smoke tests') {
+                    wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
+                        deleteDir()
+                        checkout scm
+                        rtMaven.run pom: 'pom.xml', goals: 'clean package surefire-report:report -Dspring.profiles.active=devB -Dtest=**/smoketests/*Test'
+
+                        publishHTML([
+                                allowMissing         : false,
+                                alwaysLinkToLastBuild: true,
+                                keepAll              : false,
+                                reportDir            : 'target/site',
+                                reportFiles          : 'surefire-report.html',
+                                reportName           : 'Smoke Test Report'
+                        ])
+
+                        rpmTagger.tagTestingPassedOn('test')
+                    }
+                }
             }
+        } catch (err) {
+            notifyBuildFailure channel: '#cc-payments-tech'
+            throw err
         }
     }
 }
