@@ -1,0 +1,72 @@
+version: '2.1'
+
+services:
+  wait-for-startup:
+    command: /bin/echo payments-api started
+    image: alpine
+    depends_on:
+      payments-api:
+        condition: service_healthy
+
+  wiremock-api:
+    container_name: wiremock-api
+    build:
+      context: docker/gov-pay-stub/
+    ports:
+      - 4403:8080
+
+  payments-api:
+    image: docker.artifactory.reform.hmcts.net/common-components/payments-api:${PAYMENTS_API_DOCKER_VERSION:-latest}
+    container_name: payments-api
+    command: --wait-for-database 30
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://payments-database:5432/payment
+      - AUTH_PROVIDER_SERVICE_CLIENT_BASEURL=http://service-auth-provider-api:8080/
+      - AUTH_IDAM_CLIENT_BASEURL=http://idam-api:8080/
+      - GOV_PAY_URL=http://wiremock-api:8080
+      - GOV_PAY_AUTH_KEY_REFERENCE=gov-pay-api-key
+    ports:
+      - 4401:8080
+    links:
+      - payments-database
+      - service-auth-provider-api
+      - idam-api
+      - wiremock-api
+    depends_on:
+      - payments-database
+      - service-auth-provider-api
+      - idam-api
+      - wiremock-api
+
+  payments-database:
+    image: docker.artifactory.reform.hmcts.net/common-components/payments-database:${PAYMENTS_DATABASE_DOCKER_VERSION:-latest}
+    container_name: payments-database
+
+  idam-api:
+    image: docker.artifactory.reform.hmcts.net/auth/idam-api
+    container_name: idam-api
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://idam-database:5432/idam
+      - SPRING_PROFILES_ACTIVE=test
+      - IDAM_TESTING_SUPPORT_ENABLED=true
+    ports:
+      - 4501:8080
+    links:
+     - idam-database
+    depends_on:
+     - idam-database
+
+  idam-database:
+    image: docker.artifactory.reform.hmcts.net/auth/idam-database
+    container_name: idam-database
+
+  service-auth-provider-api:
+    image: docker.artifactory.reform.hmcts.net/auth/service-auth-provider-api
+    container_name: service-auth-provider-api
+    environment:
+      - AUTH_PROVIDER_SERVICE_SERVER_JWT_KEY=wThK0f0/lh3FlxFcL4xUWDMI5C1J9KyQBgXV4wseh1e5J1uYJIjvTvArHxQDrYoHJ23xFxjHkOnvNbR5dXRoxA==
+      - AUTH_PROVIDER_SERVICE_SERVER_MICROSERVICE_KEYS_REFERENCE=AAAAAAAAAAAAAAAA
+      - AUTH_PROVIDER_SERVICE_TESTING_SUPPORT_ENABLED=true
+    ports:
+      - 4502:8080
+
