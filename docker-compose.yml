@@ -12,6 +12,10 @@ services:
     container_name: wiremock-api
     build:
       context: docker/gov-pay-stub/
+      args:
+        - http_proxy
+        - https_proxy
+        - no_proxy
     ports:
       - 4403:8080
 
