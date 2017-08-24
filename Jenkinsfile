@@ -31,7 +31,7 @@ lock('Payment API acceptance tests') {
                 stage('Run acceptance tests') {
                     def rtMaven = Artifactory.newMavenBuild()
                     rtMaven.tool = 'apache-maven-3.3.9'
-                    rtMaven.run pom: 'pom.xml', goals: 'clean package surefire-report:report -Dspring.profiles.active=docker -Dtest=**/acceptancetests/*Test'
+                    rtMaven.run pom: 'pom.xml', goals: 'clean package surefire-report:report -Dspring.profiles.active=docker'
 
                     publishHTML([
                             allowMissing         : false,
