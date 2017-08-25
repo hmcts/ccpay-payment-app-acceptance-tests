@@ -1,85 +1,50 @@
 #!groovy
-@Library("Reform")
-import uk.gov.hmcts.Ansible
-import uk.gov.hmcts.Packager
-import uk.gov.hmcts.RPMTagger
-
-def packager = new Packager(this, 'cc')
-def ansible = new Ansible(this, 'ccpay')
-def rtMaven = Artifactory.newMavenBuild()
-RPMTagger rpmTagger = new RPMTagger(this, 'payment-api', packager.rpmName('payment-api', params.rpmVersion), 'cc-local')
+@Library("Reform") _
 
 properties([
         [$class: 'GithubProjectProperty', displayName: 'Payment API acceptance tests', projectUrlStr: 'https://git.reform.hmcts.net/common-components/payment-app-acceptance-tests'],
-        parameters([string(defaultValue: '', description: 'RPM Version', name: 'rpmVersion')])
+        parameters([
+                string(defaultValue: 'latest', description: 'payments-api Docker Version', name: 'paymentsApiDockerVersion'),
+                string(defaultValue: 'latest', description: 'payments-database Docker Version', name: 'paymentsDatabaseDockerVersion')
+        ])
 ])
-
-def secrets = [
-        [$class      : 'VaultSecret',
-         path        : 'secret/test/cc/payment/acceptance-tests/authorization-header',
-         secretValues: [[$class: 'VaultSecretValue', envVar: 'SMOKE_TEST_HEADERS_AUTHORIZATION', vaultKey: 'value']]],
-        [$class      : 'VaultSecret',
-         path        : 'secret/test/cc/payment/acceptance-tests/service-authorization-header',
-         secretValues: [[$class: 'VaultSecretValue', envVar: 'SMOKE_TEST_HEADERS_SERVICE_AUTHORIZATION', vaultKey: 'value']]]
-]
 
 
 lock('Payment API acceptance tests') {
     node {
         try {
-            def deploymentRequired = !params.rpmVersion.isEmpty()
-            def version = "{payment_api_version: ${params.rpmVersion}}"
-
-            if (deploymentRequired) {
-                stage('Deploy to Dev') {
-                    ansible.runDeployPlaybook(version, 'dev')
-                    rpmTagger.tagDeploymentSuccessfulOn('dev')
-                }
-            }
-
-            stage('Run acceptance tests') {
+            stage('Checkout') {
                 deleteDir()
                 checkout scm
-                rtMaven.tool = 'apache-maven-3.3.9'
-                rtMaven.run pom: 'pom.xml', goals: 'clean package surefire-report:report -Dspring.profiles.active=devA -Dtest=**/acceptancetests/*Test'
-
-                publishHTML([
-                        allowMissing         : false,
-                        alwaysLinkToLastBuild: true,
-                        keepAll              : false,
-                        reportDir            : 'target/site',
-                        reportFiles          : 'surefire-report.html',
-                        reportName           : 'Acceptance Test Report'
-                ])
             }
 
-            if (deploymentRequired) {
-                stage('Tag testing passed') {
-                    rpmTagger.tagTestingPassedOn('dev')
+            try {
+                stage('Start Docker Images') {
+                    env.PAYMENTS_API_DOCKER_VERSION = params.paymentsApiDockerVersion
+                    env.PAYMENTS_DATABASE_DOCKER_VERSION = params.paymentsDatabaseDockerVersion
+
+                    sh 'docker-compose pull'
+                    sh 'docker-compose up -d payments-api'
+                    sh 'docker-compose up wait-for-startup'
                 }
 
-                stage('Deploy to Test') {
-                    ansible.runDeployPlaybook(version, 'test')
-                    rpmTagger.tagDeploymentSuccessfulOn('test')
+                stage('Run acceptance tests') {
+                    def rtMaven = Artifactory.newMavenBuild()
+                    rtMaven.tool = 'apache-maven-3.3.9'
+                    rtMaven.run pom: 'pom.xml', goals: 'clean package surefire-report:report -Dspring.profiles.active=docker'
+
+                    publishHTML([
+                            allowMissing         : false,
+                            alwaysLinkToLastBuild: true,
+                            keepAll              : false,
+                            reportDir            : 'target/site',
+                            reportFiles          : 'surefire-report.html',
+                            reportName           : 'Acceptance Test Report'
+                    ])
                 }
-
-                stage('Run smoke tests') {
-                    wrap([$class: 'VaultBuildWrapper', vaultSecrets: secrets]) {
-                        deleteDir()
-                        checkout scm
-                        rtMaven.run pom: 'pom.xml', goals: 'clean package surefire-report:report -Dspring.profiles.active=devB -Dtest=**/smoketests/*Test'
-
-                        publishHTML([
-                                allowMissing         : false,
-                                alwaysLinkToLastBuild: true,
-                                keepAll              : false,
-                                reportDir            : 'target/site',
-                                reportFiles          : 'surefire-report.html',
-                                reportName           : 'Smoke Test Report'
-                        ])
-
-                        rpmTagger.tagTestingPassedOn('test')
-                    }
+            } finally {
+                stage('Stop Docker Images') {
+                    sh 'docker-compose down'
                 }
             }
         } catch (err) {

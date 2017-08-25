@@ -28,7 +28,7 @@
       "settlement_summary": {},
       "_links": {
         "self": {
-          "href": "http:/localhost:4403/govPayId1",
+          "href": "http://wiremock-api:8080/govPayId1",
           "method": "GET"
         },
         "next_url": {
@@ -44,15 +44,15 @@
           "method": "POST"
         },
         "events": {
-          "href": "http://localhost:4403/govPayId1/events",
+          "href": "http://wiremock-api:8080/govPayId1/events",
           "method": "GET"
         },
         "refunds": {
-          "href": "http://localhost:4403/govPayId1/refunds",
+          "href": "http://wiremock-api:8080/govPayId1/refunds",
           "method": "GET"
         },
         "cancel": {
-          "href": "http://localhost:4403/govPayId1/cancel",
+          "href": "http://wiremock-api:8080/govPayId1/cancel",
           "method": "POST"
         }
       }
