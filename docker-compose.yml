@@ -9,7 +9,6 @@ services:
         condition: service_healthy
 
   wiremock-api:
-    container_name: wiremock-api
     build:
       context: docker/gov-pay-stub/
       args:
@@ -21,7 +20,6 @@ services:
 
   payments-api:
     image: docker.artifactory.reform.hmcts.net/common-components/payments-api:${PAYMENTS_API_DOCKER_VERSION:-latest}
-    container_name: payments-api
     command: --wait-for-database 30
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://payments-database:5432/payment
@@ -44,11 +42,9 @@ services:
 
   payments-database:
     image: docker.artifactory.reform.hmcts.net/common-components/payments-database:${PAYMENTS_DATABASE_DOCKER_VERSION:-latest}
-    container_name: payments-database
 
   idam-api:
     image: docker.artifactory.reform.hmcts.net/auth/idam-api
-    container_name: idam-api
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://idam-database:5432/idam
       - SPRING_PROFILES_ACTIVE=test
@@ -62,11 +58,9 @@ services:
 
   idam-database:
     image: docker.artifactory.reform.hmcts.net/auth/idam-database
-    container_name: idam-database
 
   service-auth-provider-api:
     image: docker.artifactory.reform.hmcts.net/auth/service-auth-provider-api
-    container_name: service-auth-provider-api
     environment:
       - AUTH_PROVIDER_SERVICE_SERVER_JWT_KEY=wThK0f0/lh3FlxFcL4xUWDMI5C1J9KyQBgXV4wseh1e5J1uYJIjvTvArHxQDrYoHJ23xFxjHkOnvNbR5dXRoxA==
       - AUTH_PROVIDER_SERVICE_SERVER_MICROSERVICE_KEYS_REFERENCE=AAAAAAAAAAAAAAAA
