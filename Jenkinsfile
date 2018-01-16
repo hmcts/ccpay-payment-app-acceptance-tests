@@ -2,7 +2,7 @@
 @Library("Reform") _
 
 properties([
-        [$class: 'GithubProjectProperty', displayName: 'Payment API acceptance tests', projectUrlStr: 'https://git.reform.hmcts.net/common-components/payment-app-acceptance-tests'],
+        [$class: 'GithubProjectProperty', displayName: 'Payment API acceptance tests', projectUrlStr: 'https://github.com/hmcts/ccpay-payment-app-acceptance-tests'],
         parameters([
                 string(defaultValue: 'latest', description: 'payments-api Docker Version', name: 'paymentsApiDockerVersion'),
                 string(defaultValue: 'latest', description: 'payments-database Docker Version', name: 'paymentsDatabaseDockerVersion')
