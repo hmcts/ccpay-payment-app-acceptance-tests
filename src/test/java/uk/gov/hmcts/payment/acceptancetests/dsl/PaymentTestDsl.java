@@ -4,6 +4,7 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import javafx.application.Application;
 import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,9 +12,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.payment.acceptancetests.tokens.ServiceTokenFactory;
 import uk.gov.hmcts.payment.acceptancetests.tokens.UserTokenFactory;
-import uk.gov.hmcts.payment.api.contract.CreatePaymentRequestDto.CreatePaymentRequestDtoBuilder;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.RefundPaymentRequestDto.RefundPaymentRequestDtoBuilder;
+import uk.gov.hmcts.payment.api.v1.contract.CreatePaymentRequestDto.CreatePaymentRequestDtoBuilder;
+import uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto;
+import uk.gov.hmcts.payment.api.v1.contract.RefundPaymentRequestDto.RefundPaymentRequestDtoBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -71,9 +72,9 @@ public class PaymentTestDsl {
             return this;
         }
 
-        public PaymentWhenDsl createPayment(String userId, CreatePaymentRequestDtoBuilder requestDto, AtomicReference<PaymentDto> paymentHolder) {
+        public PaymentWhenDsl createPayment(String userId, CreatePaymentRequestDtoBuilder requestDto, AtomicReference<PaymentOldDto> paymentHolder) {
             createPayment(userId, requestDto);
-            paymentHolder.set(response.then().statusCode(201).extract().as(PaymentDto.class));
+            paymentHolder.set(response.then().statusCode(201).extract().as(PaymentOldDto.class));
             return this;
         }
 
@@ -108,8 +109,8 @@ public class PaymentTestDsl {
             return this;
         }
 
-        public PaymentThenDsl created(Consumer<PaymentDto> paymentAssertions) {
-            PaymentDto paymentDto = response.then().statusCode(201).extract().as(PaymentDto.class);
+        public PaymentThenDsl created(Consumer<PaymentOldDto> paymentAssertions) {
+            PaymentOldDto paymentDto = response.then().statusCode(201).extract().as(PaymentOldDto.class);
             paymentAssertions.accept(paymentDto);
             return this;
         }
@@ -125,14 +126,14 @@ public class PaymentTestDsl {
             return this;
         }
 
-        public PaymentThenDsl get(Consumer<PaymentDto> paymentAssertions) {
-            PaymentDto paymentDto = response.then().statusCode(200).extract().as(PaymentDto.class);
+        public PaymentThenDsl get(Consumer<PaymentOldDto> paymentAssertions) {
+            PaymentOldDto paymentDto = response.then().statusCode(200).extract().as(PaymentOldDto.class);
             paymentAssertions.accept(paymentDto);
             return this;
         }
 
-        public PaymentDto get() {
-            return response.then().statusCode(200).extract().as(PaymentDto.class);
+        public PaymentOldDto get() {
+            return response.then().statusCode(200).extract().as(PaymentOldDto.class);
         }
 
         public PaymentThenDsl validationError(String message) {

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.payment.acceptancetests;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
@@ -7,6 +8,7 @@ import java.net.URL;
 import java.util.List;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -20,6 +22,7 @@ public class IntegrationTestBase {
     private List<String> govPayStubUrls;
 
     private static boolean stubsLoaded = false;
+
 
     @Before
     public void loadGovPayStubs() throws FileNotFoundException, MalformedURLException {

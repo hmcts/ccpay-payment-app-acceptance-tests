@@ -5,12 +5,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.payment.acceptancetests.dsl.PaymentTestDsl;
-import uk.gov.hmcts.payment.api.contract.CreatePaymentRequestDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
-import uk.gov.hmcts.payment.api.contract.RefundPaymentRequestDto;
+import uk.gov.hmcts.payment.api.v1.contract.CreatePaymentRequestDto;
+import uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto;
+import uk.gov.hmcts.payment.api.v1.contract.RefundPaymentRequestDto;
 
-import static uk.gov.hmcts.payment.api.contract.CreatePaymentRequestDto.createPaymentRequestDtoWith;
-import static uk.gov.hmcts.payment.api.contract.RefundPaymentRequestDto.refundPaymentRequestDtoWith;
+import static uk.gov.hmcts.payment.api.v1.contract.CreatePaymentRequestDto.createPaymentRequestDtoWith;
+import static uk.gov.hmcts.payment.api.v1.contract.RefundPaymentRequestDto.refundPaymentRequestDtoWith;
 
 public class RefundPaymentIntegrationTest extends IntegrationTestBase {
 
@@ -32,8 +32,8 @@ public class RefundPaymentIntegrationTest extends IntegrationTestBase {
     private PaymentTestDsl scenario;
 
     @Test
-    public void createAndRefundPayment() throws IOException {
-        AtomicReference<PaymentDto> paymentHolder = new AtomicReference<>();
+    public void createAndRefundPayment() throws IOException, Exception{
+        AtomicReference<PaymentOldDto> paymentHolder = new AtomicReference<>();
         scenario.given().userId("1").serviceId("reference")
                 .when()
                 .createPayment("1", validRequest, paymentHolder)
@@ -42,8 +42,8 @@ public class RefundPaymentIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    public void createAndRefundAvailableAmountInvalid() throws IOException {
-        AtomicReference<PaymentDto> paymentHolder = new AtomicReference<>();
+    public void createAndRefundAvailableAmountInvalid() throws IOException, Exception {
+        AtomicReference<PaymentOldDto> paymentHolder = new AtomicReference<>();
         scenario.given().userId("1").serviceId("reference")
                 .when()
                 .createPayment("1", validRequest, paymentHolder)
