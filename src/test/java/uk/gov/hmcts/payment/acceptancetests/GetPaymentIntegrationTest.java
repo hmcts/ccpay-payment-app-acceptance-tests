@@ -7,11 +7,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.payment.acceptancetests.dsl.PaymentTestDsl;
-import uk.gov.hmcts.payment.api.contract.CreatePaymentRequestDto;
-import uk.gov.hmcts.payment.api.contract.PaymentDto;
+import uk.gov.hmcts.payment.api.v1.contract.CreatePaymentRequestDto;
+import uk.gov.hmcts.payment.api.v1.contract.PaymentOldDto;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.hmcts.payment.api.contract.CreatePaymentRequestDto.createPaymentRequestDtoWith;
+import static uk.gov.hmcts.payment.api.v1.contract.CreatePaymentRequestDto.createPaymentRequestDtoWith;
 
 public class GetPaymentIntegrationTest extends IntegrationTestBase {
 
@@ -25,8 +25,8 @@ public class GetPaymentIntegrationTest extends IntegrationTestBase {
     private PaymentTestDsl scenario;
 
     @Test
-    public void validGetPaymentRequestShouldResultIn200() throws IOException {
-        AtomicReference<PaymentDto> paymentHolder = new AtomicReference<>();
+    public void validGetPaymentRequestShouldResultIn200() throws IOException, Exception {
+        AtomicReference<PaymentOldDto> paymentHolder = new AtomicReference<>();
 
         scenario.given().userId("1").serviceId("reference")
                 .when()
@@ -34,7 +34,7 @@ public class GetPaymentIntegrationTest extends IntegrationTestBase {
                 .getPayment("1", paymentHolder.get().getId())
                 .then().get((paymentDto -> {
                     assertThat(paymentDto.getAmount()).isEqualTo(100);
-                    assertThat(paymentDto.getState()).isEqualTo(new PaymentDto.StateDto("created", false));
+                    assertThat(paymentDto.getState()).isEqualTo(new PaymentOldDto.StateDto("created", false));
                     assertThat(paymentDto.getDescription()).isEqualTo("Description");
                     assertThat(paymentDto.getReference()).isEqualTo("Reference");
                     assertThat(paymentDto.getLinks().getCancel().getHref()).endsWith(paymentHolder.get().getId() + "/cancel");
@@ -44,8 +44,8 @@ public class GetPaymentIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    public void createAndCancelApproach() throws IOException {
-        AtomicReference<PaymentDto> paymentHolder = new AtomicReference<>();
+    public void createAndCancelApproach() throws IOException, Exception {
+        AtomicReference<PaymentOldDto> paymentHolder = new AtomicReference<>();
 
         scenario.given().userId("1").serviceId("reference")
                 .when()

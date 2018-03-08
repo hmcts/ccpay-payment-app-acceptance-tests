@@ -27,6 +27,29 @@ services:
       - AUTH_IDAM_CLIENT_BASEURL=http://idam-api:8080/
       - GOV_PAY_URL=http://wiremock-api:8080
       - GOV_PAY_AUTH_KEY_REFERENCE=gov-pay-api-key
+      - http_proxy
+      - https_proxy
+      - no_proxy
+      - spring_datasource_username=payment
+      - spring_datasource_password=payment
+      - spring_datasource_driver=org.postgresql.Driver
+      - card_payments_report_schedule=0 */30 * * * ?
+      - card_payments_report_scheduler_enabled=true
+      - pba_payments_report_schedule=0 */30 * * * ?
+      - pba_payments_report_scheduler_enabled=true
+      - spring_mail_host=mta.reform.hmcts.net
+      - spring_mail_port=25
+      - spring_mail_properties_mail_smtp_starttls_enable=true
+      - spring_mail_properties_email_smtp_ssl_trust=*
+      - card_payments_email_from=no-reply@reform.hmcts.net
+      - card_payments_email_to=Oluwakemi.Benson@HMCTS.NET,Krishna.Nuthalapati@HMCTS.NET
+      - card_payments_email_subject=Dev Env:Card Payments Reconciliation Report
+      - card_payments_email_message=Hi <br/><br/>Please find attached today''s reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>
+      - pba_payments_email_from=no-reply@reform.hmcts.net
+      - pba_payments_email_to=Oluwakemi.Benson@HMCTS.NET,Krishna.Nuthalapati@HMCTS.NET
+      - pba_payments_email_subject=Dev Env:PBA Reconciliation Report
+      - pba_payments_email_message=Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>
+
     ports:
       - 4401:8080
     links:
@@ -41,30 +64,60 @@ services:
       - wiremock-api
 
   payments-database:
-    image: docker.artifactory.reform.hmcts.net/common-components/payments-database:${PAYMENTS_DATABASE_DOCKER_VERSION:-latest}
+    image: docker.artifactory.reform.hmcts.net/common-components/payments-database
+    container_name: payments-database
+    ports:
+      - 5430:5432
+
+  service-auth-provider-api:
+    build:
+      context: .
+      args:
+        - http_proxy
+        - https_proxy
+        - no_proxy
+    image: docker.artifactory.reform.hmcts.net/auth/service-auth-provider-api
+    container_name: service-auth-provider-api
+    environment:
+        - auth_provider_service_server_jwtKey=wThK0f0/lh3FlxFcL4xUWDMI5C1J9KyQBgXV4wseh1e5J1uYJIjvTvArHxQDrYoHJ23xFxjHkOnvNbR5dXRoxA==
+        -  AUTH_PROVIDER_SERVICE_SERVER_MICROSERVICE_KEYS_REFERENCE=AAAAAAAAAAAAAAAA
+        - AUTH_PROVIDER_SERVICE_TESTING_SUPPORT_ENABLED=true
+    ports:
+      - 4552:8080
 
   idam-api:
-    image: docker.artifactory.reform.hmcts.net/auth/idam-api
+    image: docker.artifactory.reform.hmcts.net/auth/idam-api:f0c89985670e19f808189cbd43bf19df98b8e41a
+    build:
+      context: .
+    container_name: idam-api
     environment:
+      - IDAM_SUPERUSER_EMAIL
       - SPRING_DATASOURCE_URL=jdbc:postgresql://idam-database:5432/idam
       - SPRING_PROFILES_ACTIVE=test
       - IDAM_TESTING_SUPPORT_ENABLED=true
+      - LOGGING_LEVEL_UK_GOV_HMCTS_IDAM=DEBUG
+      - IDAM_AUTHENTICATION_WEB_HOST=https://authentication-web:8000
+      - IDAM_REGISTRATION_WEB_HOST=https://www-local.registration.reform.hmcts.net:9000
+      - IDAM_PROBATE_URL=https://www-local.registration.reform.hmcts.net:9000/poc/probate
+      - IDAM_CMC_URL=https://www-local.registration.reform.hmcts.net:9000/poc
+      - IDAM_DIVORCE_URL=https://www-local.registration.reform.hmcts.net:9000/poc/divorce
+      - IDAM_SSCS_URL=https://www-local.registration.reform.hmcts.net:9000/poc
+      - IDAM_CCD_URL=https://www-local.registration.reform.hmcts.net:9000/poc/ccd
+      - IDAM_API_OAUTH2_CLIENT_CLIENT_SECRETS_REGISTRATION_WEB=QM5RQQ53LZFOSIXJ
+      - REFORM_ENVIRONMENT=test
+      - http_proxy=
+      - https_proxy=
+      - no_proxy=
     ports:
-      - 4501:8080
+      - 4551:8080
     links:
-     - idam-database
+      - idam-database
     depends_on:
-     - idam-database
+      idam-database:
+        condition: service_healthy
 
   idam-database:
     image: docker.artifactory.reform.hmcts.net/auth/idam-database
-
-  service-auth-provider-api:
-    image: docker.artifactory.reform.hmcts.net/auth/service-auth-provider-api
-    environment:
-      - AUTH_PROVIDER_SERVICE_SERVER_JWT_KEY=wThK0f0/lh3FlxFcL4xUWDMI5C1J9KyQBgXV4wseh1e5J1uYJIjvTvArHxQDrYoHJ23xFxjHkOnvNbR5dXRoxA==
-      - AUTH_PROVIDER_SERVICE_SERVER_MICROSERVICE_KEYS_REFERENCE=AAAAAAAAAAAAAAAA
-      - AUTH_PROVIDER_SERVICE_TESTING_SUPPORT_ENABLED=true
+    container_name: idam-database
     ports:
-      - 4502:8080
-
+      - 5431:5432
