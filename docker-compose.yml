@@ -49,7 +49,7 @@ services:
       - pba_payments_email_to=Oluwakemi.Benson@HMCTS.NET,Krishna.Nuthalapati@HMCTS.NET
       - pba_payments_email_subject=Dev Env:PBA Reconciliation Report
       - pba_payments_email_message=Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>
-      - fees_register_url=https://fees-register:9001
+      - fees_register_url=https://fees-register:9001/
 
     ports:
       - 4401:8080
