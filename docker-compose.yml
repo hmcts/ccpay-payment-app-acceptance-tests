@@ -19,7 +19,7 @@ services:
       - 4403:8080
 
   payments-api:
-    image: docker.artifactory.reform.hmcts.net/common-components/payments-api:${PAYMENTS_API_DOCKER_VERSION:-latest}
+    image: docker.artifactory.reform.hmcts.net/common-components/payments-api
     command: --wait-for-database 30
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://payments-database:5432/payment
@@ -36,10 +36,10 @@ services:
       - card_payments_report_schedule=0 */30 * * * ?
       - card_payments_report_scheduler_enabled=true
       - pba_payments_report_schedule=0 */30 * * * ?
-      - pba_payments_report_scheduler_enabled=true
+      - pba_payments_report_scheduler_enabled=false
       - spring_mail_host=mta.reform.hmcts.net
       - spring_mail_port=25
-      - spring_mail_properties_mail_smtp_starttls_enable=true
+      - spring_mail_properties_mail_smtp_starttls_enable=false
       - spring_mail_properties_email_smtp_ssl_trust=*
       - card_payments_email_from=no-reply@reform.hmcts.net
       - card_payments_email_to=Oluwakemi.Benson@HMCTS.NET,Krishna.Nuthalapati@HMCTS.NET
@@ -49,6 +49,7 @@ services:
       - pba_payments_email_to=Oluwakemi.Benson@HMCTS.NET,Krishna.Nuthalapati@HMCTS.NET
       - pba_payments_email_subject=Dev Env:PBA Reconciliation Report
       - pba_payments_email_message=Hi <br/><br/>Please find attached today''s Payment by Account reconciliation report. <br/><br/>Regards <br/><br/>Payments team<br/><br/>
+      - fees_register_url=https://fees-register:9001
 
     ports:
       - 4401:8080
@@ -86,7 +87,7 @@ services:
       - 4552:8080
 
   idam-api:
-    image: docker.artifactory.reform.hmcts.net/auth/idam-api:f0c89985670e19f808189cbd43bf19df98b8e41a
+    image: docker.artifactory.reform.hmcts.net/auth/idam-api
     build:
       context: .
     container_name: idam-api
